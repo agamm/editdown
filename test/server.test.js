@@ -8,11 +8,11 @@ import { createServer } from '../lib/server.js';
 let dir, mdFile, server, base;
 
 before(async () => {
-  dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mdedit-test-'));
+  dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mdpen-test-'));
   mdFile = path.join(dir, 'doc.md');
   fs.writeFileSync(mdFile, '# Hello\n');
   fs.writeFileSync(path.join(dir, 'pic.png'), Buffer.from('89504e47', 'hex'));
-  fs.writeFileSync(path.join(os.tmpdir(), 'mdedit-outside-secret.txt'), 'do not serve me');
+  fs.writeFileSync(path.join(os.tmpdir(), 'mdpen-outside-secret.txt'), 'do not serve me');
 
   server = createServer(mdFile);
   await new Promise((res) => server.listen(0, '127.0.0.1', res));
@@ -22,7 +22,7 @@ before(async () => {
 after(() => {
   server.close();
   fs.rmSync(dir, { recursive: true, force: true });
-  fs.rmSync(path.join(os.tmpdir(), 'mdedit-outside-secret.txt'), { force: true });
+  fs.rmSync(path.join(os.tmpdir(), 'mdpen-outside-secret.txt'), { force: true });
 });
 
 test('GET /api/load returns the file contents', async () => {
@@ -60,7 +60,7 @@ test('assets next to the document are served', async () => {
 });
 
 test('traversal outside the document directory is refused', async () => {
-  for (const attack of ['/../mdedit-outside-secret.txt', '/%2e%2e/mdedit-outside-secret.txt']) {
+  for (const attack of ['/../mdpen-outside-secret.txt', '/%2e%2e/mdpen-outside-secret.txt']) {
     const res = await fetch(`${base}${attack}`, { redirect: 'manual' });
     assert.ok(res.status === 403 || res.status === 404, `${attack} returned ${res.status}`);
     assert.ok(!(await res.text()).includes('do not serve me'), `${attack} leaked the file`);

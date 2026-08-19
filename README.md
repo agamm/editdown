@@ -1,14 +1,14 @@
-# mdedit
+# mdpen
 
 Edit a markdown file in your browser and save it straight back to disk.
 
 ```sh
-npx mdedit notes.md
+npx mdpen notes.md
 ```
 
-![mdedit in action](https://raw.githubusercontent.com/agamm/mdedit/main/demo.gif)
+![mdpen in action](https://raw.githubusercontent.com/agamm/mdpen/main/demo.gif)
 
-Every other `md*` CLI on npm renders markdown one way: disk to browser. `mdedit` goes
+Every other `md*` CLI on npm renders markdown one way: disk to browser. `mdpen` goes
 both ways. You get a rich-text editor over your actual file, and Cmd+S writes it back
 as markdown.
 
@@ -29,13 +29,13 @@ as markdown.
 ## Usage
 
 ```sh
-mdedit                    # edits README.md in the current directory
-mdedit docs/notes.md      # edits a specific file
-mdedit notes.md -p 3000   # pick the port (default 8432)
-mdedit notes.md --no-open # do not open a browser
+mdpen                    # edits README.md in the current directory
+mdpen docs/notes.md      # edits a specific file
+mdpen notes.md -p 3000   # pick the port (default 8432)
+mdpen notes.md --no-open # do not open a browser
 ```
 
-If the port is taken, mdedit walks up to the next free one.
+If the port is taken, mdpen walks up to the next free one.
 
 | Shortcut | Action |
 |---|---|
@@ -46,18 +46,18 @@ If the port is taken, mdedit walks up to the next free one.
 
 ## Install
 
-Nothing to install, `npx mdedit` is the intended way to run it. If you want it always
+Nothing to install, `npx mdpen` is the intended way to run it. If you want it always
 on hand:
 
 ```sh
-npm install -g mdedit
+npm install -g mdpen
 ```
 
 Requires Node 18+.
 
 ## Notes
 
-The file must already exist. `mdedit` edits documents, it does not create them, so a
+The file must already exist. `mdpen` edits documents, it does not create them, so a
 typo in the filename gets you an error rather than a stray empty file.
 
 Round-tripping runs your document through HTML and back, which normalizes formatting:
