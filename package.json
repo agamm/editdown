@@ -1,10 +1,10 @@
 {
-  "name": "mdpen",
+  "name": "editdown",
   "version": "0.1.0",
   "description": "Edit a markdown file in your browser, WYSIWYG or source, and save straight back to disk.",
   "type": "module",
   "bin": {
-    "mdpen": "bin/mdpen.js"
+    "editdown": "bin/editdown.js"
   },
   "files": [
     "bin",
@@ -29,12 +29,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/agamm/mdpen.git"
+    "url": "git+https://github.com/agamm/editdown.git"
   },
   "bugs": {
-    "url": "https://github.com/agamm/mdpen/issues"
+    "url": "https://github.com/agamm/editdown/issues"
   },
-  "homepage": "https://github.com/agamm/mdpen#readme",
+  "homepage": "https://github.com/agamm/editdown#readme",
   "dependencies": {
     "marked": "^18.0.9",
     "turndown": "^7.2.4",

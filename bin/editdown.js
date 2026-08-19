@@ -8,10 +8,10 @@ import { createServer } from '../lib/server.js';
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json');
 
-const USAGE = `mdpen ${version} - edit a markdown file in your browser, save back to disk
+const USAGE = `editdown ${version} - edit a markdown file in your browser, save back to disk
 
 Usage:
-  mdpen [file.md] [options]
+  editdown [file.md] [options]
 
 Arguments:
   file.md            the file to edit (defaults to README.md in the current directory)
@@ -24,7 +24,7 @@ Options:
 `;
 
 function fail(msg) {
-  console.error(`mdpen: ${msg}`);
+  console.error(`editdown: ${msg}`);
   process.exit(1);
 }
 
@@ -61,7 +61,7 @@ const file = path.resolve(opts.file ?? 'README.md');
 if (!fs.existsSync(file)) {
   fail(opts.file
     ? `no such file: ${opts.file}`
-    : 'no README.md in the current directory. Pass a file: mdpen notes.md');
+    : 'no README.md in the current directory. Pass a file: editdown notes.md');
 }
 if (!fs.statSync(file).isFile()) fail(`not a file: ${opts.file ?? 'README.md'}`);
 try {
@@ -84,7 +84,7 @@ server.on('error', (err) => {
 
 server.listen(opts.port, '127.0.0.1', () => {
   const url = `http://127.0.0.1:${server.address().port}`;
-  console.log(`mdpen  ${path.relative(process.cwd(), file) || file}`);
+  console.log(`editdown  ${path.relative(process.cwd(), file) || file}`);
   console.log(`        ${url}   (Ctrl+C to stop)`);
   if (opts.open) openBrowser(url);
 });

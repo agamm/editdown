@@ -1,14 +1,14 @@
-# mdpen
+# editdown
 
 Edit a markdown file in your browser and save it straight back to disk.
 
 ```sh
-npx mdpen notes.md
+npx editdown notes.md
 ```
 
-![mdpen in action](https://raw.githubusercontent.com/agamm/mdpen/main/demo.gif)
+![editdown in action](https://raw.githubusercontent.com/agamm/editdown/main/demo.gif)
 
-Every other `md*` CLI on npm renders markdown one way: disk to browser. `mdpen` goes
+Every other `md*` CLI on npm renders markdown one way: disk to browser. `editdown` goes
 both ways. You get a rich-text editor over your actual file, and Cmd+S writes it back
 as markdown.
 
@@ -29,13 +29,13 @@ as markdown.
 ## Usage
 
 ```sh
-mdpen                    # edits README.md in the current directory
-mdpen docs/notes.md      # edits a specific file
-mdpen notes.md -p 3000   # pick the port (default 8432)
-mdpen notes.md --no-open # do not open a browser
+editdown                    # edits README.md in the current directory
+editdown docs/notes.md      # edits a specific file
+editdown notes.md -p 3000   # pick the port (default 8432)
+editdown notes.md --no-open # do not open a browser
 ```
 
-If the port is taken, mdpen walks up to the next free one.
+If the port is taken, editdown walks up to the next free one.
 
 | Shortcut | Action |
 |---|---|
@@ -46,18 +46,18 @@ If the port is taken, mdpen walks up to the next free one.
 
 ## Install
 
-Nothing to install, `npx mdpen` is the intended way to run it. If you want it always
+Nothing to install, `npx editdown` is the intended way to run it. If you want it always
 on hand:
 
 ```sh
-npm install -g mdpen
+npm install -g editdown
 ```
 
 Requires Node 18+.
 
 ## Notes
 
-The file must already exist. `mdpen` edits documents, it does not create them, so a
+The file must already exist. `editdown` edits documents, it does not create them, so a
 typo in the filename gets you an error rather than a stray empty file.
 
 Round-tripping runs your document through HTML and back, which normalizes formatting:
