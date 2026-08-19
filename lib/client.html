@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<title>Edit - __BASENAME__</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; }
+.toolbar { padding: 8px 16px; background: #16213e; display: flex; align-items: center; gap: 12px; }
+.toolbar h3 { font-size: 14px; color: #a8b2d1; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.toolbar button { padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; }
+#save-btn { background: #e94560; color: white; }
+#save-btn:hover { background: #c81e45; }
+#save-btn.saved { background: #2ecc71; }
+#copy-btn { background: #0f3460; color: #a8b2d1; }
+#copy-btn:hover { background: #1a4a8a; }
+#copy-btn.copied { background: #2ecc71; color: white; }
+#mode-btn { background: #0f3460; color: #a8b2d1; }
+#mode-btn:hover { background: #1a4a8a; }
+#status { font-size: 12px; color: #a8b2d1; }
+.editor-wrap { flex: 1; overflow-y: auto; background: #fff; }
+/* WYSIWYG mode */
+#wysiwyg { padding: 24px 48px; max-width: 860px; margin: 0 auto; min-height: 100%; outline: none; font-size: 15px; line-height: 1.7; color: #222; }
+#wysiwyg[contenteditable=true]:focus { outline: none; }
+#wysiwyg h1 { font-size: 28px; margin: 20px 0 10px; border-bottom: 2px solid #e1e4e8; padding-bottom: 8px; }
+#wysiwyg h2 { font-size: 22px; margin: 18px 0 8px; border-bottom: 1px solid #e1e4e8; padding-bottom: 6px; }
+#wysiwyg h3 { font-size: 18px; margin: 16px 0 6px; }
+#wysiwyg p { margin: 8px 0; }
+#wysiwyg ul, #wysiwyg ol { margin: 8px 0; padding-left: 24px; }
+#wysiwyg li { margin: 4px 0; }
+#wysiwyg code { background: #e8eaed; padding: 2px 6px; border-radius: 3px; font-family: 'SF Mono', monospace; font-size: 13px; }
+#wysiwyg pre code { display: block; padding: 12px; background: #282c34; color: #abb2bf; border-radius: 6px; }
+#wysiwyg a { color: #0066cc; }
+#wysiwyg img { max-width: 100%; height: auto; display: block; margin: 16px auto; border-radius: 6px; }
+#wysiwyg strong { font-weight: 700; }
+#wysiwyg em { font-style: italic; }
+#wysiwyg hr { border: none; border-top: 1px solid #e1e4e8; margin: 16px 0; }
+#wysiwyg blockquote { border-left: 3px solid #ddd; padding-left: 12px; color: #666; margin: 8px 0; }
+#wysiwyg table { border-collapse: collapse; margin: 12px 0; }
+#wysiwyg th, #wysiwyg td { border: 1px solid #e1e4e8; padding: 6px 12px; text-align: left; }
+#wysiwyg th { background: #f6f8fa; }
+/* Link tooltip */
+#link-tooltip { position: absolute; background: #1a1a2e; border: 1px solid #0f3460; border-radius: 6px; padding: 6px 10px; display: none; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.3); flex-direction: column; gap: 4px; font-size: 12px; }
+#link-tooltip .tt-row { display: flex; align-items: center; gap: 6px; }
+#link-tooltip a.tt-display { color: #64b5f6; max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; text-decoration: none; }
+#link-tooltip a.tt-display:hover { text-decoration: underline; }
+#link-tooltip button { background: none; border: none; cursor: pointer; padding: 2px 6px; border-radius: 3px; font-size: 12px; color: #a8b2d1; }
+#link-tooltip button:hover { background: #0f3460; }
+#link-tooltip .edit-btn { color: #81c784; }
+#link-tooltip .remove-btn { color: #e57373; }
+#link-tooltip .sep { color: #333; }
+#link-tooltip .tt-edit-row { display: none; align-items: center; gap: 4px; }
+#link-tooltip .tt-edit-row input { background: #0d1b2a; border: 1px solid #0f3460; color: #ccd6f6; padding: 3px 6px; border-radius: 3px; font-size: 12px; width: 300px; outline: none; font-family: 'SF Mono', monospace; }
+#link-tooltip .tt-edit-row input:focus { border-color: #64b5f6; }
+#link-tooltip .tt-edit-row .save-edit { color: #81c784; font-weight: 600; }
+#link-tooltip .tt-edit-row .cancel-edit { color: #e57373; }
+#link-tooltip.pinned { border-color: #64b5f6; }
+/* Source mode */
+#source { width: 100%; height: 100%; padding: 24px 48px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.6; background: #1a1a2e; color: #ccd6f6; border: none; outline: none; resize: none; display: none; tab-size: 2; }
+</style>
+<script src="/vendor/marked.js"></script>
+<script src="/vendor/turndown.js"></script>
+<script src="/vendor/turndown-gfm.js"></script>
+</head><body>
+<div class="toolbar">
+  <h3>__BASENAME__</h3>
+  <span id="status"></span>
+  <button id="copy-btn" onclick="copyRich()">Copy rich text</button>
+  <button id="mode-btn" onclick="toggleMode()">Source</button>
+  <button id="save-btn" onclick="save()">Save (Cmd+S)</button>
+</div>
+<div class="editor-wrap">
+  <div id="wysiwyg" contenteditable="true"></div>
+  <textarea id="source" spellcheck="false"></textarea>
+</div>
+<div id="link-tooltip">
+  <div class="tt-row">
+    <a id="tt-url" class="tt-display" href="#" target="_blank"></a>
+    <span class="sep">|</span>
+    <button class="edit-btn" onclick="startEditLink()" title="Edit URL">edit</button>
+    <button class="remove-btn" onclick="removeLink()" title="Remove link">unlink</button>
+  </div>
+  <div class="tt-edit-row" id="tt-edit-row">
+    <input id="tt-input" type="text" spellcheck="false" />
+    <button class="save-edit" onclick="applyEditLink()">ok</button>
+    <button class="cancel-edit" onclick="cancelEditLink()">x</button>
+  </div>
+</div>
+<script>
+const wysiwyg = document.getElementById('wysiwyg');
+const source = document.getElementById('source');
+const statusEl = document.getElementById('status');
+const saveBtn = document.getElementById('save-btn');
+const modeBtn = document.getElementById('mode-btn');
+let dirty = false;
+let mode = 'wysiwyg'; // or 'source'
+let currentMarkdown = '';
+
+marked.setOptions({ breaks: false, gfm: true });
+
+const td = new TurndownService({
+  headingStyle: 'atx',
+  bulletListMarker: '-',
+  codeBlockStyle: 'fenced',
+  emDelimiter: '*',
+  strongDelimiter: '**',
+  linkStyle: 'inlined',
+  hr: '---'
+});
+// Blank line after each list item, so nested content survives a round trip
+td.addRule('listItemSpacing', {
+  filter: 'li',
+  replacement: function(content, node) {
+    content = content.trim();
+    const prefix = node.parentNode.nodeName === 'OL'
+      ? (Array.from(node.parentNode.children).indexOf(node) + 1) + '. '
+      : '- ';
+    return prefix + content + '\n\n';
+  }
+});
+// Tables, strikethrough and task lists, which plain Turndown flattens into loose
+// text. Added last so its task-list rule outranks listItemSpacing on checkboxes.
+td.use(turndownPluginGfm.gfm);
+
+// Load file
+fetch('/api/load').then(r => r.text()).then(text => {
+  currentMarkdown = text;
+  wysiwyg.innerHTML = marked.parse(text);
+  source.value = text;
+});
+
+function htmlToMarkdown() {
+  let md = td.turndown(wysiwyg.innerHTML);
+  md = md.replace(/\n{4,}/g, '\n\n\n');
+  return md;
+}
+
+function toggleMode() {
+  if (mode === 'wysiwyg') {
+    currentMarkdown = htmlToMarkdown();
+    source.value = currentMarkdown;
+    wysiwyg.style.display = 'none';
+    source.style.display = 'block';
+    mode = 'source';
+    modeBtn.textContent = 'Rich Edit';
+  } else {
+    currentMarkdown = source.value;
+    wysiwyg.innerHTML = marked.parse(currentMarkdown);
+    source.style.display = 'none';
+    wysiwyg.style.display = 'block';
+    mode = 'wysiwyg';
+    modeBtn.textContent = 'Source';
+  }
+}
+
+wysiwyg.addEventListener('input', markDirty);
+source.addEventListener('input', markDirty);
+
+function getMarkdown() {
+  if (mode === 'wysiwyg') return htmlToMarkdown();
+  return source.value;
+}
+
+function save() {
+  const md = getMarkdown();
+  fetch('/api/save', { method: 'POST', headers: {'Content-Type': 'text/plain'}, body: md })
+    .then(r => r.json()).then(d => {
+      dirty = false;
+      currentMarkdown = md;
+      // Adopt the post-write mtime, so the disk watcher does not treat our own
+      // save as an external edit and blow away the cursor with a re-render.
+      if (d.mtime) lastMtime = d.mtime;
+      statusEl.textContent = 'Saved at ' + new Date().toLocaleTimeString();
+      saveBtn.className = 'saved';
+      saveBtn.textContent = 'Saved!';
+      setTimeout(() => { saveBtn.textContent = 'Save (Cmd+S)'; if (!dirty) saveBtn.className = 'saved'; }, 1500);
+    })
+    .catch(() => { statusEl.textContent = 'Save failed'; });
+}
+
+// Copy semantic HTML to the clipboard, for pasting into Google Docs / Word / email
+async function copyRich() {
+  const copyBtn = document.getElementById('copy-btn');
+  // Re-render from markdown to get clean HTML (no contenteditable cruft)
+  const md = getMarkdown();
+  const cleanHtml = marked.parse(md);
+
+  const tmp = document.createElement('div');
+  tmp.style.fontStyle = 'normal';
+  tmp.style.fontFamily = 'Arial';
+  tmp.innerHTML = cleanHtml;
+
+  // Unwrap <p> inside <li> (marked wraps li content in <p> when items are blank-line separated)
+  tmp.querySelectorAll('li > p').forEach(p => {
+    while (p.firstChild) p.parentNode.insertBefore(p.firstChild, p);
+    p.remove();
+  });
+
+  // Docs has no code block, so fake it with a styled span
+  tmp.querySelectorAll('pre code, pre').forEach(el => {
+    const code = document.createElement('span');
+    code.style.fontFamily = 'monospace';
+    code.style.fontSize = '11pt';
+    code.style.backgroundColor = '#f1f3f4';
+    code.innerHTML = el.innerHTML.replace(/\n/g, '<br>');
+    el.replaceWith(code);
+  });
+
+  tmp.querySelectorAll('code').forEach(el => {
+    const code = document.createElement('span');
+    code.style.fontFamily = 'monospace';
+    code.style.fontSize = '11pt';
+    code.style.backgroundColor = '#f1f3f4';
+    code.textContent = el.textContent;
+    el.replaceWith(code);
+  });
+
+  // Strip everything except href and style, after the code styling is applied
+  tmp.querySelectorAll('*').forEach(el => {
+    [...el.attributes].forEach(attr => {
+      if (attr.name === 'href' || attr.name === 'style') return;
+      el.removeAttribute(attr.name);
+    });
+  });
+
+  const html = tmp.innerHTML;
+  const plain = tmp.textContent;
+  const flash = () => {
+    copyBtn.textContent = 'Copied!';
+    copyBtn.className = 'copied';
+    setTimeout(() => { copyBtn.textContent = 'Copy rich text'; copyBtn.className = ''; }, 2000);
+  };
+
+  try {
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        'text/plain': new Blob([plain], { type: 'text/plain' }),
+        'text/html': new Blob([html], { type: 'text/html' }),
+      })
+    ]);
+    flash();
+  } catch (err) {
+    // Older browsers: select a detached node and use execCommand
+    const sel = window.getSelection();
+    const range = document.createRange();
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    tempDiv.style.position = 'fixed';
+    tempDiv.style.left = '-9999px';
+    document.body.appendChild(tempDiv);
+    range.selectNodeContents(tempDiv);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    document.execCommand('copy');
+    document.body.removeChild(tempDiv);
+    sel.removeAllRanges();
+    flash();
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); save(); }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'b') { e.preventDefault(); document.execCommand('bold'); markDirty(); }
+});
+
+window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+// --- Hot reload: pick up edits made to the file outside the browser ---
+let lastMtime = 0;
+
+fetch('/api/mtime').then(r => r.json()).then(d => { lastMtime = d.mtime; });
+
+setInterval(() => {
+  if (dirty) return; // never clobber unsaved edits
+  fetch('/api/mtime').then(r => r.json()).then(d => {
+    if (d.mtime > lastMtime) {
+      lastMtime = d.mtime;
+      fetch('/api/load').then(r => r.text()).then(text => {
+        const wrap = document.querySelector('.editor-wrap');
+        if (mode === 'wysiwyg') {
+          const scrollable = wrap.scrollHeight - wrap.clientHeight;
+          const scrollPct = wrap.scrollTop / (scrollable || 1);
+          wysiwyg.innerHTML = marked.parse(text);
+          wrap.scrollTop = scrollPct * (wrap.scrollHeight - wrap.clientHeight);
+        } else {
+          source.value = text;
+        }
+        currentMarkdown = text;
+        statusEl.textContent = 'Reloaded from disk';
+        setTimeout(() => { if (!dirty) statusEl.textContent = ''; }, 2000);
+      });
+    }
+  }).catch(() => {}); // server gone or mid-write, try again next tick
+}, 1000);
+
+function markDirty() { dirty = true; statusEl.textContent = 'Unsaved changes'; saveBtn.className = ''; }
+
+// --- Link tooltip ---
+const tooltip = document.getElementById('link-tooltip');
+const ttUrl = document.getElementById('tt-url');
+const ttEditRow = document.getElementById('tt-edit-row');
+const ttInput = document.getElementById('tt-input');
+let hoveredLink = null;
+let tooltipTimeout = null;
+let tooltipPinned = false;
+
+function showTooltip(a) {
+  hoveredLink = a;
+  ttUrl.href = a.href;
+  ttUrl.textContent = a.href;
+  ttEditRow.style.display = 'none';
+  document.querySelector('.tt-row').style.display = 'flex';
+  const rect = a.getBoundingClientRect();
+  tooltip.style.display = 'flex';
+  tooltip.style.left = Math.min(rect.left, window.innerWidth - 420) + 'px';
+  tooltip.style.top = (rect.bottom + 4) + 'px';
+}
+
+function hideTooltip() {
+  if (tooltipPinned) return;
+  tooltip.style.display = 'none';
+  tooltip.classList.remove('pinned');
+  hoveredLink = null;
+}
+
+wysiwyg.addEventListener('mouseover', e => {
+  const a = e.target.closest('a');
+  if (!a || !wysiwyg.contains(a)) return;
+  if (tooltipPinned) return;
+  clearTimeout(tooltipTimeout);
+  showTooltip(a);
+});
+
+wysiwyg.addEventListener('mouseout', e => {
+  const a = e.target.closest('a');
+  if (!a) return;
+  tooltipTimeout = setTimeout(() => {
+    if (!tooltip.matches(':hover') && !tooltipPinned) hideTooltip();
+  }, 300);
+});
+
+tooltip.addEventListener('mouseleave', () => {
+  if (!tooltipPinned) hideTooltip();
+});
+
+// Right click pins the tooltip open
+wysiwyg.addEventListener('contextmenu', e => {
+  const a = e.target.closest('a');
+  if (a && wysiwyg.contains(a)) {
+    e.preventDefault();
+    // Pin before showing, so the pending mouseout cannot close it
+    tooltipPinned = true;
+    tooltip.classList.add('pinned');
+    clearTimeout(tooltipTimeout);
+    showTooltip(a);
+  }
+});
+
+document.addEventListener('click', e => {
+  if (tooltipPinned && !tooltip.contains(e.target) && !e.target.closest('#wysiwyg a')) {
+    tooltipPinned = false;
+    hideTooltip();
+  }
+});
+
+// Links are for editing here, not for navigating away
+wysiwyg.addEventListener('click', e => {
+  const a = e.target.closest('a');
+  if (a) e.preventDefault();
+});
+
+function startEditLink() {
+  if (!hoveredLink) return;
+  tooltipPinned = true;
+  tooltip.classList.add('pinned');
+  document.querySelector('.tt-row').style.display = 'none';
+  ttEditRow.style.display = 'flex';
+  ttInput.value = hoveredLink.href;
+  ttInput.focus();
+  ttInput.select();
+}
+
+function applyEditLink() {
+  if (!hoveredLink) return;
+  const newUrl = ttInput.value.trim();
+  if (newUrl) {
+    hoveredLink.href = newUrl;
+    ttUrl.href = newUrl;
+    ttUrl.textContent = newUrl;
+    markDirty();
+  }
+  cancelEditLink();
+}
+
+function cancelEditLink() {
+  ttEditRow.style.display = 'none';
+  document.querySelector('.tt-row').style.display = 'flex';
+  tooltipPinned = false;
+  tooltip.classList.remove('pinned');
+  hideTooltip();
+}
+
+ttInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); applyEditLink(); }
+  if (e.key === 'Escape') { e.preventDefault(); cancelEditLink(); }
+});
+
+function removeLink() {
+  if (!hoveredLink) return;
+  // execCommand rather than DOM surgery, so Ctrl+Z still undoes it
+  const sel = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(hoveredLink);
+  sel.removeAllRanges();
+  sel.addRange(range);
+  document.execCommand('unlink');
+  tooltipPinned = false;
+  hideTooltip();
+  hoveredLink = null;
+  markDirty();
+}
+
+// Pasting a URL over selected text turns it into a link
+wysiwyg.addEventListener('paste', e => {
+  const sel = window.getSelection();
+  if (!sel.rangeCount || sel.isCollapsed) return; // nothing selected, normal paste
+
+  const clipText = (e.clipboardData || window.clipboardData).getData('text/plain').trim();
+  if (/^https?:\/\//i.test(clipText)) {
+    e.preventDefault();
+    document.execCommand('createLink', false, clipText);
+    markDirty();
+  }
+});
+</script>
+</body></html>

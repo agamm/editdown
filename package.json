@@ -1,0 +1,43 @@
+{
+  "name": "mdedit",
+  "version": "0.1.0",
+  "description": "Edit a markdown file in your browser, WYSIWYG or source, and save straight back to disk.",
+  "type": "module",
+  "bin": {
+    "mdedit": "bin/mdedit.js"
+  },
+  "files": [
+    "bin",
+    "lib"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "markdown",
+    "editor",
+    "wysiwyg",
+    "cli",
+    "preview",
+    "live-reload",
+    "contenteditable"
+  ],
+  "author": "Agam More",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agamm/mdedit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/agamm/mdedit/issues"
+  },
+  "homepage": "https://github.com/agamm/mdedit#readme",
+  "dependencies": {
+    "marked": "^18.0.9",
+    "turndown": "^7.2.4",
+    "turndown-plugin-gfm": "^1.0.2"
+  }
+}
