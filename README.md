@@ -25,6 +25,7 @@ as markdown.
   blocks and lists surviving the trip.
 - **Images render inline**, resolved relative to the markdown file.
 - **Offline and local.** Binds to `127.0.0.1`, no CDN, no telemetry, two dependencies.
+- **Light and dark.** Follows the system appearance. The Theme button pins Light, Dark, or Auto, and that choice stays in this browser.
 
 ## Usage
 

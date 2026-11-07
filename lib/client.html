@@ -1,45 +1,140 @@
 <!DOCTYPE html>
-<html><head>
+<html lang="en"><head>
 <meta charset="utf-8">
 <title>Edit - __BASENAME__</title>
+<script>
+/* Theme before first paint. editdown-theme is "auto" (default), "light", or "dark". */
+(function () {
+  var pref = 'auto';
+  try {
+    var stored = localStorage.getItem('editdown-theme');
+    if (stored === 'light' || stored === 'dark' || stored === 'auto') pref = stored;
+  } catch (e) {}
+  var dark = false;
+  try { dark = window.matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) {}
+  var resolved = pref === 'auto' ? (dark ? 'dark' : 'light') : pref;
+  document.documentElement.setAttribute('data-theme', resolved);
+  document.documentElement.setAttribute('data-theme-pref', pref);
+})();
+</script>
 <style>
+:root {
+  color-scheme: light;
+  --bg: #ffffff;
+  --text: #222222;
+  --link: #0066cc;
+  --rule: #7d8590;
+  --code-bg: #e8eaed;
+  --code-text: #222222;
+  --code-border: #e8eaed;
+  --pre-bg: #282c34;
+  --pre-text: #abb2bf;
+  --pre-border: #282c34;
+  --quote: #666666;
+  --quote-border: #6b7280;
+  --table-head: #f6f8fa;
+  --table-border: #7d8590;
+  --source-bg: #f7f8fa;
+  --source-text: #1c1e24;
+  --selection: #b3d4fc;
+  --selection-text: #1a1a1a;
+  --toolbar-bg: #16213e;
+  --toolbar-text: #a8b2d1;
+  --toolbar-btn: #0f3460;
+  --toolbar-btn-hover: #1a4189;
+  --toolbar-save: #d6375d;
+  --toolbar-save-hover: #c81e45;
+  --on-save: #ffffff;
+  --toolbar-saved: #2ecc71;
+  --toolbar-saved-text: #062814;
+  --focus: #9ecbff;
+}
+/* Keep this block identical to the prefers-color-scheme copy below. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #1a1a2e;
+  --text: #e6eaf6;
+  --link: #9ecbff;
+  --rule: #7d8cb8;
+  --code-bg: #414b78;
+  --code-text: #f4f7ff;
+  --code-border: #b7c4ee;
+  --pre-bg: #0e1324;
+  --pre-text: #e6edf7;
+  --pre-border: #7d8cb8;
+  --quote: #d5dced;
+  --quote-border: #9eb0dc;
+  --table-head: #262b48;
+  --table-border: #7d8cb8;
+  --source-bg: #1a1a2e;
+  --source-text: #ccd6f6;
+  --selection: #3d5a98;
+  --selection-text: #ffffff;
+  --toolbar-line: #7d8cb8;
+}
+:root[data-theme="dark"] .toolbar { border-bottom-color: var(--toolbar-line); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #1a1a2e;
+    --text: #e6eaf6;
+    --link: #9ecbff;
+    --rule: #7d8cb8;
+    --code-bg: #414b78;
+    --code-text: #f4f7ff;
+    --code-border: #b7c4ee;
+    --pre-bg: #0e1324;
+    --pre-text: #e6edf7;
+    --pre-border: #7d8cb8;
+    --quote: #d5dced;
+    --quote-border: #9eb0dc;
+    --table-head: #262b48;
+    --table-border: #7d8cb8;
+    --source-bg: #1a1a2e;
+    --source-text: #ccd6f6;
+    --selection: #3d5a98;
+    --selection-text: #ffffff;
+    --toolbar-line: #7d8cb8;
+  }
+  :root:not([data-theme="light"]) .toolbar { border-bottom-color: var(--toolbar-line); }
+}
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; }
-.toolbar { padding: 8px 16px; background: #16213e; display: flex; align-items: center; gap: 12px; }
-.toolbar h3 { font-size: 14px; color: #a8b2d1; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; background: var(--bg); color: var(--text); }
+.toolbar { padding: 8px 16px; background: var(--toolbar-bg); display: flex; align-items: center; gap: 12px; border-bottom: 1px solid transparent; }
+.toolbar h3 { font-size: 14px; color: var(--toolbar-text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .toolbar button { padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; }
-#save-btn { background: #e94560; color: white; }
-#save-btn:hover { background: #c81e45; }
-#save-btn.saved { background: #2ecc71; }
-#copy-btn { background: #0f3460; color: #a8b2d1; }
-#copy-btn:hover { background: #1a4a8a; }
-#copy-btn.copied { background: #2ecc71; color: white; }
-#mode-btn { background: #0f3460; color: #a8b2d1; }
-#mode-btn:hover { background: #1a4a8a; }
-#status { font-size: 12px; color: #a8b2d1; }
-.editor-wrap { flex: 1; overflow-y: auto; background: #fff; }
+.toolbar button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+#save-btn { background: var(--toolbar-save); color: var(--on-save); }
+#save-btn:hover { background: var(--toolbar-save-hover); }
+#save-btn.saved { background: var(--toolbar-saved); color: var(--toolbar-saved-text); }
+#copy-btn, #mode-btn, #theme-btn { background: var(--toolbar-btn); color: var(--toolbar-text); }
+#copy-btn:hover, #mode-btn:hover, #theme-btn:hover { background: var(--toolbar-btn-hover); }
+#copy-btn.copied { background: var(--toolbar-saved); color: var(--toolbar-saved-text); }
+#status { font-size: 12px; color: var(--toolbar-text); }
+.editor-wrap { flex: 1; overflow-y: auto; background: var(--bg); }
 /* WYSIWYG mode */
-#wysiwyg { padding: 24px 48px; max-width: 860px; margin: 0 auto; min-height: 100%; outline: none; font-size: 15px; line-height: 1.7; color: #222; }
+#wysiwyg { padding: 24px 48px; max-width: 860px; margin: 0 auto; min-height: 100%; outline: none; font-size: 15px; line-height: 1.7; color: var(--text); caret-color: var(--text); }
 #wysiwyg[contenteditable=true]:focus { outline: none; }
-#wysiwyg h1 { font-size: 28px; margin: 20px 0 10px; border-bottom: 2px solid #e1e4e8; padding-bottom: 8px; }
-#wysiwyg h2 { font-size: 22px; margin: 18px 0 8px; border-bottom: 1px solid #e1e4e8; padding-bottom: 6px; }
+#wysiwyg h1 { font-size: 28px; margin: 20px 0 10px; border-bottom: 2px solid var(--rule); padding-bottom: 8px; }
+#wysiwyg h2 { font-size: 22px; margin: 18px 0 8px; border-bottom: 1px solid var(--rule); padding-bottom: 6px; }
 #wysiwyg h3 { font-size: 18px; margin: 16px 0 6px; }
 #wysiwyg p { margin: 8px 0; }
 #wysiwyg ul, #wysiwyg ol { margin: 8px 0; padding-left: 24px; }
 #wysiwyg li { margin: 4px 0; }
-#wysiwyg code { background: #e8eaed; padding: 2px 6px; border-radius: 3px; font-family: 'SF Mono', monospace; font-size: 13px; }
-#wysiwyg pre code { display: block; padding: 12px; background: #282c34; color: #abb2bf; border-radius: 6px; }
-#wysiwyg a { color: #0066cc; }
+#wysiwyg code { background: var(--code-bg); color: var(--code-text); border: 1px solid var(--code-border); padding: 2px 6px; border-radius: 3px; font-family: 'SF Mono', monospace; font-size: 13px; }
+#wysiwyg pre code { display: block; padding: 12px; background: var(--pre-bg); color: var(--pre-text); border: 1px solid var(--pre-border); border-radius: 6px; }
+#wysiwyg a { color: var(--link); text-decoration: underline; text-underline-offset: 2px; }
 #wysiwyg img { max-width: 100%; height: auto; display: block; margin: 16px auto; border-radius: 6px; }
 #wysiwyg strong { font-weight: 700; }
 #wysiwyg em { font-style: italic; }
-#wysiwyg hr { border: none; border-top: 1px solid #e1e4e8; margin: 16px 0; }
-#wysiwyg blockquote { border-left: 3px solid #ddd; padding-left: 12px; color: #666; margin: 8px 0; }
+#wysiwyg hr { border: none; border-top: 1px solid var(--rule); margin: 16px 0; }
+#wysiwyg blockquote { border-left: 3px solid var(--quote-border); padding-left: 12px; color: var(--quote); margin: 8px 0; }
 #wysiwyg table { border-collapse: collapse; margin: 12px 0; }
-#wysiwyg th, #wysiwyg td { border: 1px solid #e1e4e8; padding: 6px 12px; text-align: left; }
-#wysiwyg th { background: #f6f8fa; }
+#wysiwyg th, #wysiwyg td { border: 1px solid var(--table-border); padding: 6px 12px; text-align: left; }
+#wysiwyg th { background: var(--table-head); }
+#wysiwyg::selection, #wysiwyg ::selection, #source::selection { background: var(--selection); color: var(--selection-text); }
 /* Link tooltip */
-#link-tooltip { position: absolute; background: #1a1a2e; border: 1px solid #0f3460; border-radius: 6px; padding: 6px 10px; display: none; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.3); flex-direction: column; gap: 4px; font-size: 12px; }
+#link-tooltip { position: absolute; background: #1a1a2e; border: 1px solid #7d8cb8; border-radius: 6px; padding: 6px 10px; display: none; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.3); flex-direction: column; gap: 4px; font-size: 12px; }
 #link-tooltip .tt-row { display: flex; align-items: center; gap: 6px; }
 #link-tooltip a.tt-display { color: #64b5f6; max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; text-decoration: none; }
 #link-tooltip a.tt-display:hover { text-decoration: underline; }
@@ -47,15 +142,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; h
 #link-tooltip button:hover { background: #0f3460; }
 #link-tooltip .edit-btn { color: #81c784; }
 #link-tooltip .remove-btn { color: #e57373; }
-#link-tooltip .sep { color: #333; }
+#link-tooltip .sep { color: #7d8cb8; }
 #link-tooltip .tt-edit-row { display: none; align-items: center; gap: 4px; }
-#link-tooltip .tt-edit-row input { background: #0d1b2a; border: 1px solid #0f3460; color: #ccd6f6; padding: 3px 6px; border-radius: 3px; font-size: 12px; width: 300px; outline: none; font-family: 'SF Mono', monospace; }
+#link-tooltip .tt-edit-row input { background: #0d1b2a; border: 1px solid #7d8cb8; color: #ccd6f6; padding: 3px 6px; border-radius: 3px; font-size: 12px; width: 300px; outline: none; font-family: 'SF Mono', monospace; }
 #link-tooltip .tt-edit-row input:focus { border-color: #64b5f6; }
 #link-tooltip .tt-edit-row .save-edit { color: #81c784; font-weight: 600; }
 #link-tooltip .tt-edit-row .cancel-edit { color: #e57373; }
 #link-tooltip.pinned { border-color: #64b5f6; }
 /* Source mode */
-#source { width: 100%; height: 100%; padding: 24px 48px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.6; background: #1a1a2e; color: #ccd6f6; border: none; outline: none; resize: none; display: none; tab-size: 2; }
+#source { width: 100%; height: 100%; padding: 24px 48px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.6; background: var(--source-bg); color: var(--source-text); caret-color: var(--source-text); border: none; outline: none; resize: none; display: none; tab-size: 2; }
 </style>
 <script src="/vendor/marked.js"></script>
 <script src="/vendor/turndown.js"></script>
@@ -65,6 +160,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; h
   <h3>__BASENAME__</h3>
   <span id="status"></span>
   <button id="copy-btn" onclick="copyRich()">Copy rich text</button>
+  <button id="theme-btn" type="button" onclick="cycleTheme()" title="Color theme follows your system. Click for Light.">Theme: Auto</button>
   <button id="mode-btn" onclick="toggleMode()">Source</button>
   <button id="save-btn" onclick="save()">Save (Cmd+S)</button>
 </div>
@@ -418,6 +514,52 @@ function removeLink() {
   hoveredLink = null;
   markDirty();
 }
+
+// --- Theme: auto follows the system, Light and Dark stick until changed ---
+const themeBtn = document.getElementById('theme-btn');
+
+function resolvedTheme(pref) {
+  if (pref === 'light' || pref === 'dark') return pref;
+  var dark = false;
+  try { dark = window.matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) {}
+  return dark ? 'dark' : 'light';
+}
+
+function syncThemeButton() {
+  const pref = document.documentElement.getAttribute('data-theme-pref') || 'auto';
+  const resolved = document.documentElement.getAttribute('data-theme') || 'light';
+  const label = pref === 'dark' ? 'Theme: Dark' : pref === 'light' ? 'Theme: Light' : 'Theme: Auto';
+  const next = pref === 'auto' ? 'Light' : pref === 'light' ? 'Dark' : 'Auto';
+  const summary = pref === 'auto'
+    ? 'Color theme follows your system, currently ' + resolved + '. Click for ' + next + '.'
+    : 'Color theme is ' + pref + '. Click for ' + next + '.';
+  themeBtn.textContent = label;
+  themeBtn.title = summary;
+  themeBtn.setAttribute('aria-label', summary);
+}
+
+function applyThemePref(pref) {
+  document.documentElement.setAttribute('data-theme-pref', pref);
+  document.documentElement.setAttribute('data-theme', resolvedTheme(pref));
+  try { localStorage.setItem('editdown-theme', pref); } catch (e) {}
+  syncThemeButton();
+}
+
+function cycleTheme() {
+  const pref = document.documentElement.getAttribute('data-theme-pref') || 'auto';
+  applyThemePref(pref === 'auto' ? 'light' : pref === 'light' ? 'dark' : 'auto');
+}
+
+try {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if ((document.documentElement.getAttribute('data-theme-pref') || 'auto') === 'auto') {
+      document.documentElement.setAttribute('data-theme', resolvedTheme('auto'));
+      syncThemeButton();
+    }
+  });
+} catch (e) {}
+
+syncThemeButton();
 
 // Pasting a URL over selected text turns it into a link
 wysiwyg.addEventListener('paste', e => {
